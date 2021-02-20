@@ -7,14 +7,57 @@ if test $# -lt 1
 then
     echo "Usage: $0 [ (option)... ] (filename.xml)..." >&2
     echo "" >&2
+    echo "Options:" >&2
+    echo "  --keep (publish/pending/draft/trash/blank/all)" >&2
+    echo "    Which wp_trash_meta_status to keep." >&2
+    echo "    This option can appear multiple times to keep items" >&2
+    echo "    that are in any of the specified published states." >&2
+    echo "    Default: publish pending draft" >&2
+    echo "" >&2
     exit 1
 fi
 
+OPTION_KEEP_PUBLISHED_STATES="default"
+OPTION_STATE="none"
 XML_FILENAMES=""
 IS_ERRORS=false
 for ARG in $*
 do
-    # FUTURE check for "--option"...
+    if test "$OPTION_STATE" = "keep"
+    then
+	if test "$ARG" != "publish" \
+		-a "$ARG" != "pending" \
+		-a "$ARG" != "draft" \
+		-a "$ARG" != "trash" \
+		-a "$ARG" != "blank" \
+		-a "$ARG" != "all"
+	then
+	    echo "ERROR Invalid --keep: $ARG" >&2
+	    IS_ERRORS=true
+	fi
+
+	if test "$OPTION_KEEP_PUBLISHED_STATES" = "default"
+	then
+	    OPTION_KEEP_PUBLISHED_STATES=""
+	fi
+
+	NEW_OPTION_KEEP_PUBLISHED_STATES="$OPTION_KEEP_PUBLISHED_STATES $ARG"
+	OPTION_KEEP_PUBLISHED_STATES="$NEW_OPTION_KEEP_PUBLISHED_STATES"
+
+	OPTION_STATE="none"
+	continue
+    elif test "$OPTION_STATE" != "none"
+    then
+	echo "ERROR Invalid option state: $OPTION_STATE while trying to parse: $ARG" >&2
+	IS_ERRORS=true
+    fi
+
+    if test "$ARG" = "--keep"
+    then
+	OPTION_STATE="keep"
+	continue
+    fi
+
     XML_FILENAME="$ARG"
     if test ! -f "$XML_FILENAME"
     then
@@ -32,16 +75,25 @@ then
     exit 2
 fi
 
+if test "$OPTION_KEEP_PUBLISHED_STATES" = "default"
+then
+    OPTION_KEEP_PUBLISHED_STATES="publish pending draft"
+fi
+
 for XML_FILENAME in $XML_FILENAMES
 do
     cat "$XML_FILENAME" \
-        | awk '
+        | awk \
+	      -v "keep_states_string=$OPTION_KEEP_PUBLISHED_STATES" \
+              '
                BEGIN {
                    state = "none";
                    sub_state = "none";
                    meta_key = "";
                    meta_value = "";
                    npc_index = 0;
+
+		   split(keep_states_string, keep_states, "[ ][ ]*");
                }
 
                state == "npc" && $0 ~ /^.*<\/item>.*$/ {
@@ -57,7 +109,19 @@ do
                        npcs[npc_index]["name"] = "";
                    }
 
-                   if (npcs[npc_index]["name"] != "" && npcs[npc_index]["published_state"] == "publish") {
+		   is_kept_state = "false";
+		   for (keep_state_index in keep_states) {
+		       keep_state = keep_states[keep_state_index];
+		       if (npcs[npc_index]["state"] == keep_state) {
+		           is_kept_state = "true";
+		       } else if (keep_state == "blank" && npcs[npc_index]["state"] == "") {
+		           is_kept_state = "true";
+		       } else if (keep_state == "all") {
+		           is_kept_state = "true";
+		       }
+		   }
+
+                   if (npcs[npc_index]["name"] != "" && is_kept_state == "true") {
                        print "---";
                        print "#";
                        print "# Preliminary fields that describe this overall file:";
@@ -596,6 +660,21 @@ do
                    npcs[npc_index]["date"] = npc_date;
                }
 
+               state == "npc" && $0 ~ /^.*<wp:status>.*<\/wp:status>.*$/ {
+                   npc_state = $0;
+                   gsub(/^.*<wp:status>/, "", npc_state);
+                   gsub(/<\/wp:status>.*$/, "", npc_state);
+                   gsub(/^<!\[CDATA\[/, "", npc_state);
+                   gsub(/\]\]>$/, "", npc_state);
+                   npcs[npc_index]["state"] = npc_state;
+                   if (npc_state != "") {
+                       npcs[npc_index]["num_uncategorized"] ++;
+                       uncategorized_index = npcs[npc_index]["num_uncategorized"];
+                       npcs[npc_index]["uncategorized"][uncategorized_index]["id"] = "wp:status";
+                       npcs[npc_index]["uncategorized"][uncategorized_index]["value"] = npc_state;
+                   }
+               }
+
                state == "npc" && $0 ~ /^.*<wp:post_name>.*<\/wp:post_name>.*$/ {
                    npc_id = $0;
                    gsub(/^.*<wp:post_name>/, "", npc_id);
@@ -665,7 +744,6 @@ do
                state == "npc" && sub_state == "postmeta_end" && meta_key != "" {
                    switch (meta_key) {
                      case "_wp_trash_meta_status":
-                     npcs[npc_index]["published_state"] = meta_value;
                        if (meta_value != "") {
                            npcs[npc_index]["num_uncategorized"] ++;
                            uncategorized_index = npcs[npc_index]["num_uncategorized"];
