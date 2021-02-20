@@ -39,14 +39,16 @@ do
                BEGIN {
                    state = "none";
                    sub_state = "none";
-                   postmeta_key = "";
+                   meta_key = "";
+                   meta_value = "";
                    npc_index = 0;
                }
 
                state == "npc" && $0 ~ /^.*<\/item>.*$/ {
                    state = "none";
                    sub_state = "none";
-                   postmeta_key = "";
+                   meta_key = "";
+                   meta_value = "";
                    gsub(/<\/item>.*$/, "", $0);
                    print "---"
                    print "#"
@@ -463,9 +465,9 @@ do
                    print "    # No length limit for now."
                    print "    #"
                    print "    background-story: |"
-                   print "      " "!!!"
-                   print "      " "!!!"
-                   print "      " "!!!"
+                   background_story = npcs[npc_index]["background-story"];
+                   gsub(/[\n]/, "\n      ", background_story);
+                   print "      " background_story;
                    print ""
                    print "    #"
                    print "    # Personality (or something like that):"
@@ -500,7 +502,8 @@ do
                state == "none" && $0 ~ /^.*<item>.*$/ {
                    state = "npc";
                    sub_state = "none";
-                   postmeta_key = "";
+                   meta_key = "";
+                   meta_value = "";
                    gsub(/^.*<item>/, "", $0);
                    npc_index ++;
                }
@@ -553,17 +556,17 @@ do
                    npcs[npc_index]["adjectives"][adjective_index] = npc_adjective;
                }
 
-               state == "npc" && sub_state == "postmeta" && $0 ~ /^.*<\/wp:postmeta>.*$/ {
+               state == "npc" && ( sub_state == "postmeta_start" || sub_state == "postmeta_value" || sub_state == "postmeta_end" ) && $0 ~ /^.*<\/wp:postmeta>.*$/ {
                    gsub(/<\/wp:postmeta>.*$/, "", $0);
                    sub_state = "none";
                }
 
                state == "npc" && sub_state == "none" && $0 ~ /^.*<wp:postmeta>.*$/ {
                    gsub(/^.*<wp:postmeta>/, "", $0);
-                   sub_state = "postmeta";
+                   sub_state = "postmeta_start";
                }
 
-               state == "npc" && sub_state == "postmeta" && $0 ~ /^.*<wp:meta_key>.*<\/wp:meta_key>.*$/ {
+               state == "npc" && sub_state == "postmeta_start" && $0 ~ /^.*<wp:meta_key>.*<\/wp:meta_key>.*$/ {
                    meta_key = $0;
                    gsub(/^.*<wp:meta_key>/, "", meta_key);
                    gsub(/<\/wp:meta_key>.*$/, "", meta_key);
@@ -571,18 +574,35 @@ do
                    gsub(/\]\]>$/, "", meta_key);
                    if (meta_key == "_edit_last") {
                        sub_state = "none";
-                   } else {
-                       postmeta_key = meta_key;
+                       meta_key = "";
+                       meta_value = "";
                    }
                }
 
-               state == "npc" && sub_state == "postmeta" && postmeta_key != "" && $0 ~ /^.*<wp:meta_value>.*<\/wp:meta_value>.*$/ {
-                   meta_value = $0;
-                   gsub(/^.*<wp:meta_value>/, "", meta_value);
-                   gsub(/<\/wp:meta_value>.*$/, "", meta_value);
-                   gsub(/^<!\[CDATA\[/, "", meta_value);
-                   gsub(/\]\]>$/, "", meta_value);
-                   switch (postmeta_key) {
+               state == "npc" && sub_state == "postmeta_start" && meta_key != "" && $0 ~ /^.*<wp:meta_value>.*$/ {
+                   meta_value = "";
+                   sub_state = "postmeta_value";
+               }
+
+               state == "npc" && sub_state == "postmeta_value" {
+                   append_meta_value = $0;
+                   gsub(/^.*<wp:meta_value>/, "", append_meta_value);
+                   gsub(/<\/wp:meta_value>.*$/, "", append_meta_value);
+                   gsub(/^<!\[CDATA\[/, "", append_meta_value);
+                   gsub(/\]\]>$/, "", append_meta_value);
+                   if (meta_value == "") {
+                       meta_value = append_meta_value;
+                   } else {
+                       meta_value = meta_value "\n" append_meta_value;
+                   }
+               }
+
+               state == "npc" && sub_state == "postmeta_value" && $0 ~ /^.*<\/wp:meta_value>.*$/ {
+                   sub_state = "postmeta_end";
+               }
+
+               state == "npc" && sub_state == "postmeta_end" && meta_key != "" {
+                   switch (meta_key) {
                      case "name":
                        npcs[npc_index]["name"] = meta_value;
                        break;
@@ -703,6 +723,13 @@ do
                        if (meta_value != "") {
                            faction_index = npcs[npc_index]["num_factions"];
                            npcs[npc_index]["factions"][faction_index]["role"] = meta_value;
+                       }
+                       break;
+                     case "background":
+                       gsub(/[\r]/, "", meta_value);
+                       gsub(/[\n][ ]*[\n]/, "\n|\n", meta_value);
+                       if (meta_value != "") {
+                           npcs[npc_index]["background-story"] = meta_value;
                        }
                        break;
                    }
