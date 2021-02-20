@@ -18,9 +18,9 @@ do
     XML_FILENAME="$ARG"
     if test ! -f "$XML_FILENAME"
     then
-	echo "ERROR No such XML file: $XML_FILENAME"
-	IS_ERRORS=true
-	continue
+        echo "ERROR No such XML file: $XML_FILENAME"
+        IS_ERRORS=true
+        continue
     fi
 
     NEW_XML_FILENAMES="$XML_FILENAMES $XML_FILENAME"
@@ -35,16 +35,20 @@ fi
 for XML_FILENAME in $XML_FILENAMES
 do
     cat "$XML_FILENAME" \
-	| awk '
-	       BEGIN {
-	           state = "none";
-		   npc_index = 0;
-	       }
+        | awk '
+               BEGIN {
+                   state = "none";
+                   sub_state = "none";
+                   postmeta_key = "";
+                   npc_index = 0;
+               }
 
-	       state == "npc" && $0 ~ /^.*<\/item>.*$/ {
-	           state = "none";
-		   gsub(/<\/item>.*$/, "", $0);
-		   print "---"
+               state == "npc" && $0 ~ /^.*<\/item>.*$/ {
+                   state = "none";
+                   sub_state = "none";
+                   postmeta_key = "";
+                   gsub(/<\/item>.*$/, "", $0);
+                   print "---"
                    print "#"
                    print "# Preliminary fields that describe this overall file:"
                    print "#"
@@ -81,17 +85,17 @@ do
                    print "  # E.g. 2021-12-31"
                    print "  #      2021-12-31 23:59:59"
                    print "  #"
-                   print "  date: \"" npcs[npc_index]["date"] "\""
-		   print ""
+                   print "  date: " npcs[npc_index]["date"]
+                   print ""
                    print "  #"
-		   print "  # Arbitrary labels that are opaque to the system, only"
-		   print "  # potentially useful to humans.  For example, the original"
-		   print "  # WordPress id of a character (1234 etc)."
-		   print "  #"
-		   print "  # Optional."
-		   print "  #"
-		   print "  labels:"
-		   print "  - wordpress_id: " npcs[npc_index]["wordpress_id"]
+                   print "  # Arbitrary labels that are opaque to the system, only"
+                   print "  # potentially useful to humans.  For example, the original"
+                   print "  # WordPress id of a character (1234 etc)."
+                   print "  #"
+                   print "  # Optional."
+                   print "  #"
+                   print "  labels:"
+                   print "  - wordpress_id: " npcs[npc_index]["wordpress_id"]
                    print ""
                    print "  #"
                    print "  # In future more metadata will likely be needed."
@@ -110,7 +114,7 @@ do
                    print "  # Required."
                    print "  # Max length: ..."
                    print "  #"
-		   print "  name: " npcs[npc_index]["name"];
+                   print "  name: " npcs[npc_index]["name"];
                    print ""
                    print "  #"
                    print "  # The NPC artwork."
@@ -118,11 +122,11 @@ do
                    print "  # The filename can include a RELATIVE path:"
                    print "  #     path/to/my/image.jpg"
                    print "  # But it CANNOT be an absolute path:"
-                   print "  #     C:\path\to\my\image.jpg"
+                   print "  #     C:\\path\\to\\my\\image.jpg"
                    print "  # For now let us keep all images in one directory,"
                    print "  # at least until that becomes a scaling nightmare."
                    print "  #"
-                   print "  image: " "!!!"
+                   print "  # image: " "NO_ARTWORK_AT_TIME_OF_CONVERSION"
                    print ""
                    print "  #"
                    print "  # Race, class, etc."
@@ -141,7 +145,7 @@ do
                    print "    #"
                    print "    # Required."
                    print "    #"
-                   print "    age: " "!!!"
+                   print "    age: " npcs[npc_index]["age"]
                    print ""
                    print "    #"
                    print "    # Races (case insensitive):"
@@ -163,7 +167,7 @@ do
                    print "    # Required."
                    print "    # Max length: ..."
                    print "    #"
-                   print "    race: " "!!!"
+                   print "    race: " npcs[npc_index]["race"]
                    print ""
                    print "    #"
                    print "    # The sub-race can be anything."
@@ -172,7 +176,11 @@ do
                    print "    # Optional.  Can be commented out."
                    print "    # Max length: ..."
                    print "    #"
-                   print "    sub-race: " "!!!"
+                   if (length(npcs[npc_index]["sub_race"]) != 0) {
+                       print "    sub-race: " npcs[npc_index]["sub_race"];
+                   } else {
+                       print "    # sub-race: NONE.";
+                   }
                    print ""
                    print "    #"
                    print "    # Pronouns (case insensitive):"
@@ -182,7 +190,7 @@ do
                    print "    #"
                    print "    # Required."
                    print "    #"
-                   print "    pronouns: " "!!!"
+                   print "    pronouns: " npcs[npc_index]["pronouns"]
                    print ""
                    print "    #"
                    print "    # Occupation(s)."
@@ -191,9 +199,9 @@ do
                    print "    # Max length per occupation: ..."
                    print "    #"
                    print "    occupation:"
-                   print "    - " "!!!"
-                   print "    - " "!!!"
-                   print "    - " "!!!"
+                   for (occupation_index = 1; occupation_index <= npcs[npc_index]["num_occupations"]; occupation_index ++) {
+                       print "    - " npcs[npc_index]["occupation"][occupation_index];
+                   }
                    print ""
                    print "    #"
                    print "    # D & D classes (case insensitive):"
@@ -216,7 +224,7 @@ do
                    print "    #"
                    print "    # Required."
                    print "    #"
-                   print "    class: " "!!!"
+                   print "    class: " npcs[npc_index]["class"]
                    print ""
                    print "    #"
                    print "    # Class level."
@@ -225,7 +233,7 @@ do
                    print "    # Required."
                    print "    # Integer."
                    print "    #"
-                   print "    level: " "!!!"
+                   print "    level: " npcs[npc_index]["level"]
                    print ""
                    print "    #"
                    print "    # Alignments (case insensitive):"
@@ -241,7 +249,7 @@ do
                    print "    #"
                    print "    # Required."
                    print "    #"
-                   print "    alignment: " "!!!"
+                   print "    alignment: " npcs[npc_index]["alignment"]
                    print ""
                    print "    #"
                    print "    # Alignment tendencies:"
@@ -249,10 +257,14 @@ do
                    print "    #"
                    print "    # Optional."
                    print "    #"
-                   print "    tendencies:"
-                   print "    - " "!!!"
-                   print "    - " "!!!"
-                   print "    - " "!!!"
+                   npcs[npc_index]["num_tendencies"] ++;
+                   npcs[npc_index]["num_tendencies"] --;
+                   if (npcs[npc_index]["num_tendencies"] > 0) {
+                       print "    tendencies:"
+                       for (tendency_index = 1; tendency_index <= npcs[npc_index]["num_tendencies"]; tendency_index ++) {
+                           print "    - " npcs[npc_index]["tendencies"][tendency_index];
+                       }
+                   }
                    print ""
                    print "    #"
                    print "    # Languages the character speaks"
@@ -276,16 +288,38 @@ do
                    print "    # For example:"
                    print "    #"
                    print "    # factions:"
-                   print "    # - thieves_guild_of_poliwood"
-                   print "    # - union_of_seamstresses"
-                   print "    # - cult_of_sky_anthologies"
+                   print "    # - id: thieves_guild_of_poliwood"
+                   print "    #   name: Thieves Guild of Poliwood"
+                   print "    #   role: Associate Professor of Lockpicking"
+                   print "    # - id: union_of_seamstresses"
+                   print "    #   name: Union of Seamstresses"
+                   print "    #   role: Window dressing"
+                   print "    # - id: cult_of_sky_anthologies"
+                   print "    #   name: Cult of Sky Anthologies"
+                   print "    #   role: Going Clear Sky pastor"
                    print "    #"
                    print "    # Optional.  0 or more."
                    print "    #"
-                   print "    factions:"
-                   print "    - " "!!!"
-                   print "    - " "!!!"
-                   print "    - " "!!!"
+                   npcs[npc_index]["num_factions"] ++;
+                   npcs[npc_index]["num_factions"] --;
+                   if (npcs[npc_index]["num_factions"] > 0) {
+                       print "    factions:"
+                       for (faction_index = 1; faction_index <= npcs[npc_index]["num_factions"]; faction_index ++) {
+                           print "    - id: " npcs[npc_index]["factions"][faction_index]["id"];
+                           print "      name: " npcs[npc_index]["factions"][faction_index]["name"];
+                           print "      role: " npcs[npc_index]["factions"][faction_index]["role"];
+                       }
+                   }
+                   print ""
+                   print "    #"
+                   print "    # Adjectives or other tags that can be used for searching."
+                   print "    #"
+                   print "    # Optional.  0 or more."
+                   print "    #"
+                   print "    adjectives:"
+                   for (adjective_index in npcs[npc_index]["adjectives"]) {
+                       print "    - " npcs[npc_index]["adjectives"][adjective_index];
+                   }
                    print ""
                    print "  improv:"
                    print ""
@@ -300,7 +334,7 @@ do
                    print "    # Use this as a template:"
                    print "    #             |----------------------------------------------------------------------------------------------------------------------|"
                    print "    #"
-                   print "    introduction: " "!!!"
+                   print "    introduction: " npcs[npc_index]["introduction"]
                    print ""
                    print "    #"
                    print "    # Appearance: a brief description of the character skin, clothes, hair, eyes, etc."
@@ -311,7 +345,7 @@ do
                    print "    # Use this as a template:"
                    print "    #             |----------------------------------------------------------------------------------------------------------------------|"
                    print "    #"
-                   print "    appearance:   " "!!!"
+                   print "    appearance:   " npcs[npc_index]["appearance"]
                    print ""
                    print "    #"
                    print "    # Expressions: things the character says all the time, making their speech distinctive."
@@ -327,7 +361,7 @@ do
                    print "    # Use this as a template:"
                    print "    #             |----------------------------------------------------------------------------------------------------------------------|"
                    print "    #"
-                   print "    expressions:  " "!!!"
+                   print "    expressions:  " npcs[npc_index]["expressions"]
                    print ""
                    print "    #"
                    print "    # Mannerisms: what does the character do with their hands?  And eyes, mouth, etc."
@@ -340,7 +374,7 @@ do
                    print "    # Use this as a template:"
                    print "    #             |----------------------------------------------------------------------------------------------------------------------|"
                    print "    #"
-                   print "    mannerisms:   " "!!!"
+                   print "    mannerisms:   " npcs[npc_index]["mannerisms"]
                    print ""
                    print "  acting:"
                    print "    #"
@@ -350,8 +384,7 @@ do
                    print "    # ???Maximum length???"
                    print "    #"
                    print "    motivations: |"
-                   print "      " "!!!"
-                   print "      " "!!!"
+                   print "      " npcs[npc_index]["motivations"]
                    print ""
                    print "    #"
                    print "    # Passions:"
@@ -445,60 +478,237 @@ do
                    print "    personality: |"
                    print "      " "!!!"
                    print "      " "!!!"
-		   print ""
-		   print "  #"
-		   print "  # Content that does not get displayed, but could be useful"
-		   print "  # to humans.  Includes review comments, notes about what to"
-		   print "  # do for the NPC art, or whatever else we need."
-		   print "  #"
-		   print "  # Optional."
-		   print "  #"
-		   print "  # uncategorized:"
-	       }
+                   print ""
+                   print "  #"
+                   print "  # Content that does not get displayed, but could be useful"
+                   print "  # to humans.  Includes review comments, notes about what to"
+                   print "  # do for the NPC art, or whatever else we need."
+                   print "  #"
+                   print "  # Optional."
+                   print "  #"
+                   npcs[npc_index]["num_uncategorized"]++;
+                   npcs[npc_index]["num_uncategorized"]--;
+                   num_uncategorized = npcs[npc_index]["num_uncategorized"];
+                   if (num_uncategorized > 0) {
+                       print "  uncategorized:"
+                       for (uncategorized_index = 1; uncategorized_index <= num_uncategorized; uncategorized_index ++) {
+                           print "  - " npcs[npc_index]["uncategorized"][uncategorized_index]["id"] ": " npcs[npc_index]["uncategorized"][uncategorized_index]["value"];
+                       }
+                   }                  
+               }
 
-	       state == "none" && $0 ~ /^.*<item>.*$/ {
-	           state = "npc";
-		   gsub(/^.*<item>/, "", $0);
-		   npc_index ++;
-	       }
+               state == "none" && $0 ~ /^.*<item>.*$/ {
+                   state = "npc";
+                   sub_state = "none";
+                   postmeta_key = "";
+                   gsub(/^.*<item>/, "", $0);
+                   npc_index ++;
+               }
 
-	       state == "npc" && $0 ~ /^.*<title>.*<\/title>.*$/ {
-	           npc_name = $0;
-		   gsub(/^.*<title>/, "", npc_name);
-		   gsub(/<\/title>.*$/, "", npc_name);
-		   gsub(/^<!\[CDATA\[/, "", npc_name);
-		   gsub(/\]\]>$/, "", npc_name);
-		   npcs[npc_index]["name"] = npc_name;
-	       }
+               state == "npc" && $0 ~ /^.*<title>.*<\/title>.*$/ {
+                   npc_name = $0;
+                   gsub(/^.*<title>/, "", npc_name);
+                   gsub(/<\/title>.*$/, "", npc_name);
+                   gsub(/^<!\[CDATA\[/, "", npc_name);
+                   gsub(/\]\]>$/, "", npc_name);
+                   npcs[npc_index]["name"] = npc_name;
+               }
 
-	       state == "npc" && $0 ~ /^.*<wp:post_id>.*<\/wp:post_id>.*$/ {
-	           npc_wordpress_id = $0;
-		   gsub(/^.*<wp:post_id>/, "", npc_wordpress_id);
-		   gsub(/<\/wp:post_id>.*$/, "", npc_wordpress_id);
-		   gsub(/^<!\[CDATA\[/, "", npc_wordpress_id);
-		   gsub(/\]\]>$/, "", npc_wordpress_id);
-		   npcs[npc_index]["wordpress_id"] = npc_wordpress_id;
-	       }
+               state == "npc" && $0 ~ /^.*<wp:post_id>.*<\/wp:post_id>.*$/ {
+                   npc_wordpress_id = $0;
+                   gsub(/^.*<wp:post_id>/, "", npc_wordpress_id);
+                   gsub(/<\/wp:post_id>.*$/, "", npc_wordpress_id);
+                   gsub(/^<!\[CDATA\[/, "", npc_wordpress_id);
+                   gsub(/\]\]>$/, "", npc_wordpress_id);
+                   npcs[npc_index]["wordpress_id"] = npc_wordpress_id;
+               }
 
-	       state == "npc" && $0 ~ /^.*<wp:post_date_gmt>.*<\/wp:post_date_gmt>.*$/ {
-	           npc_date = $0;
-		   gsub(/^.*<wp:post_date_gmt>/, "", npc_date);
-		   gsub(/<\/wp:post_date_gmt>.*$/, "", npc_date);
-		   gsub(/^<!\[CDATA\[/, "", npc_date);
-		   gsub(/\]\]>$/, "", npc_date);
-		   npcs[npc_index]["date"] = npc_date;
-	       }
+               state == "npc" && $0 ~ /^.*<wp:post_date_gmt>.*<\/wp:post_date_gmt>.*$/ {
+                   npc_date = $0;
+                   gsub(/^.*<wp:post_date_gmt>/, "", npc_date);
+                   gsub(/<\/wp:post_date_gmt>.*$/, "", npc_date);
+                   gsub(/^<!\[CDATA\[/, "", npc_date);
+                   gsub(/\]\]>$/, "", npc_date);
+                   npcs[npc_index]["date"] = npc_date;
+               }
 
-	       state == "npc" && $0 ~ /^.*<wp:post_name>.*<\/wp:post_name>.*$/ {
-	           npc_id = $0;
-		   gsub(/^.*<wp:post_name>/, "", npc_id);
-		   gsub(/<\/wp:post_name>.*$/, "", npc_id);
-		   gsub(/^<!\[CDATA\[/, "", npc_id);
-		   gsub(/\]\]>$/, "", npc_id);
-		   gsub(/-/, "_", npc_id);
-		   npcs[npc_index]["id"] = npc_id;
-	       }
-              '
+               state == "npc" && $0 ~ /^.*<wp:post_name>.*<\/wp:post_name>.*$/ {
+                   npc_id = $0;
+                   gsub(/^.*<wp:post_name>/, "", npc_id);
+                   gsub(/<\/wp:post_name>.*$/, "", npc_id);
+                   gsub(/^<!\[CDATA\[/, "", npc_id);
+                   gsub(/\]\]>$/, "", npc_id);
+                   gsub(/-/, "_", npc_id);
+                   npcs[npc_index]["id"] = npc_id;
+               }
+
+               state == "npc" && $0 ~ /^.*<category domain="adjectives"[^>]*>.*<\/category>.*$/ {
+                   npc_adjective = $0;
+                   gsub(/^.*<category domain="adjectives"[^>]*>/, "", npc_adjective);
+                   gsub(/<\/category>.*$/, "", npc_adjective);
+                   gsub(/^<!\[CDATA\[/, "", npc_adjective);
+                   gsub(/\]\]>$/, "", npc_adjective);
+                   npcs[npc_index]["num_adjectives"] ++;
+                   adjective_index = npcs[npc_index]["num_adjectives"];
+                   npcs[npc_index]["adjectives"][adjective_index] = npc_adjective;
+               }
+
+               state == "npc" && sub_state == "postmeta" && $0 ~ /^.*<\/wp:postmeta>.*$/ {
+                   gsub(/<\/wp:postmeta>.*$/, "", $0);
+                   sub_state = "none";
+               }
+
+               state == "npc" && sub_state == "none" && $0 ~ /^.*<wp:postmeta>.*$/ {
+                   gsub(/^.*<wp:postmeta>/, "", $0);
+                   sub_state = "postmeta";
+               }
+
+               state == "npc" && sub_state == "postmeta" && $0 ~ /^.*<wp:meta_key>.*<\/wp:meta_key>.*$/ {
+                   meta_key = $0;
+                   gsub(/^.*<wp:meta_key>/, "", meta_key);
+                   gsub(/<\/wp:meta_key>.*$/, "", meta_key);
+                   gsub(/^<!\[CDATA\[/, "", meta_key);
+                   gsub(/\]\]>$/, "", meta_key);
+                   if (meta_key == "_edit_last") {
+                       sub_state = "none";
+                   } else {
+                       postmeta_key = meta_key;
+                   }
+               }
+
+               state == "npc" && sub_state == "postmeta" && postmeta_key != "" && $0 ~ /^.*<wp:meta_value>.*<\/wp:meta_value>.*$/ {
+                   meta_value = $0;
+                   gsub(/^.*<wp:meta_value>/, "", meta_value);
+                   gsub(/<\/wp:meta_value>.*$/, "", meta_value);
+                   gsub(/^<!\[CDATA\[/, "", meta_value);
+                   gsub(/\]\]>$/, "", meta_value);
+                   switch (postmeta_key) {
+                     case "name":
+                       npcs[npc_index]["name"] = meta_value;
+                       break;
+                     case "age":
+                       npcs[npc_index]["age"] = meta_value;
+                       break;
+                     case "race":
+                       npcs[npc_index]["race"] = tolower(meta_value);
+                       break;
+                     case "other":
+                       if (meta_value != "") {
+                           npcs[npc_index]["num_uncategorized"] ++;
+                           uncategorized_index = npcs[npc_index]["num_uncategorized"];
+                           npcs[npc_index]["uncategorized"][uncategorized_index]["id"] = "other";
+                           npcs[npc_index]["uncategorized"][uncategorized_index]["value"] = meta_value;
+                       }
+                       break;
+                     case "pronouns":
+                       npcs[npc_index]["pronouns"] = tolower(meta_value);
+                       break;
+                     case "occupation":
+                       npcs[npc_index]["num_occupations"] ++;
+                       occupation_index = npcs[npc_index]["num_occupations"];
+                       npcs[npc_index]["occupation"][occupation_index] = meta_value;
+                       break;
+                     case "alignment":
+                       gsub(/\//, " ", meta_value);
+                       npcs[npc_index]["alignment"] = tolower(meta_value);
+                       break;
+                     case "class":
+                       gsub(/^[^"]*"/, "", meta_value);
+                       gsub(/"[^"]*$/, "", meta_value);
+                       npcs[npc_index]["class"] = tolower(meta_value);
+                       break;
+                     case "level":
+                       npcs[npc_index]["level"] = meta_value;
+                       break;
+                     case "ful-picture":
+                       if (meta_value != "") {
+                           npcs[npc_index]["num_uncategorized"] ++;
+                           uncategorized_index = npcs[npc_index]["num_uncategorized"];
+                           npcs[npc_index]["uncategorized"][uncategorized_index]["id"] = "ful-picture";
+                           npcs[npc_index]["uncategorized"][uncategorized_index]["value"] = meta_value;
+                       }
+                       break;
+                     case "token-picture":
+                       if (meta_value != "") {
+                           npcs[npc_index]["num_uncategorized"] ++;
+                           uncategorized_index = npcs[npc_index]["num_uncategorized"];
+                           npcs[npc_index]["uncategorized"][uncategorized_index]["id"] = "token-picture";
+                           npcs[npc_index]["uncategorized"][uncategorized_index]["value"] = meta_value;
+                       }
+                       break;
+                     case "introducing-the-npc":
+                       npcs[npc_index]["introduction"] = meta_value;
+                       break;
+                     case "appearance":
+                       npcs[npc_index]["appearance"] = meta_value;
+                       break;
+                     case "expressions":
+                       npcs[npc_index]["expressions"] = meta_value;
+                       break;
+                     case "mannerisms":
+                       npcs[npc_index]["mannerisms"] = meta_value;
+                       break;
+                     case "motivations":
+                       npcs[npc_index]["motivations"] = meta_value;
+                       break;
+                     case "faction-1":
+                       faction_id = meta_value;
+                       gsub(/[^a-zA-Z_0-9]/, "_", faction_id);
+                       gsub(/__[_]*/, "_", faction_id);
+                       faction_id = tolower(faction_id);
+                       if (faction_id != "") {
+                           npcs[npc_index]["num_factions"] ++;
+                           faction_index = npcs[npc_index]["num_factions"];
+                           npcs[npc_index]["factions"][faction_index]["id"] = faction_id;
+                           npcs[npc_index]["factions"][faction_index]["name"] = meta_value;
+                       }
+                       break;
+                     case "faction-1-role":
+                       if (meta_value != "") {
+                           faction_index = npcs[npc_index]["num_factions"];
+                           npcs[npc_index]["factions"][faction_index]["role"] = meta_value;
+                       }
+                       break;
+                     case "faction-2":
+                       faction_id = meta_value;
+                       gsub(/[^a-zA-Z_0-9]/, "_", faction_id);
+                       gsub(/__[_]*/, "_", faction_id);
+                       faction_id = tolower(faction_id);
+                       if (faction_id != "") {
+                           npcs[npc_index]["num_factions"] ++;
+                           faction_index = npcs[npc_index]["num_factions"];
+                           npcs[npc_index]["factions"][faction_index]["id"] = faction_id;
+                           npcs[npc_index]["factions"][faction_index]["name"] = meta_value;
+                       }
+                       break;
+                     case "faction-2-role":
+                       if (meta_value != "") {
+                           faction_index = npcs[npc_index]["num_factions"];
+                           npcs[npc_index]["factions"][faction_index]["role"] = meta_value;
+                       }
+                       break;
+                     case "faction-3":
+                       faction_id = meta_value;
+                       gsub(/[^a-zA-Z_0-9]/, "_", faction_id);
+                       gsub(/__[_]*/, "_", faction_id);
+                       faction_id = tolower(faction_id);
+                       if (faction_id != "") {
+                           npcs[npc_index]["num_factions"] ++;
+                           faction_index = npcs[npc_index]["num_factions"];
+                           npcs[npc_index]["factions"][faction_index]["id"] = faction_id;
+                           npcs[npc_index]["factions"][faction_index]["name"] = meta_value;
+                       }
+                       break;
+                     case "faction-3-role":
+                       if (meta_value != "") {
+                           faction_index = npcs[npc_index]["num_factions"];
+                           npcs[npc_index]["factions"][faction_index]["role"] = meta_value;
+                       }
+                       break;
+                   }
+               }
+              ' \
+              || exit 3
 done
 
 echo ""
@@ -507,13 +717,16 @@ echo ""
 
 exit 0
 
-
 # 
-# 	       state == "npc" && $0 ~ /^.*<!!!>.*<\/!!!>.*$/ {
-# 	           npc_!!! = $0;
-# 		   gsub(/^.*<!!!>/, "", npc_!!!);
-# 		   gsub(/<\/!!!>.*$/, "", npc_!!!);
-# 		   gsub(/^<!\[CDATA\[/, "", npc_!!!);
-# 		   gsub(/\]\]>$/, "", npc_!!!);
-# 		   npcs[npc_index]["!!!"] = npc_!!!;
-# 	       }
+#                state == "npc" && $0 ~ /^.*<!!!>.*<\/!!!>.*$/ {
+#                    npc_!!! = $0;
+#                    gsub(/^.*<!!!>/, "", npc_!!!);
+#                    gsub(/<\/!!!>.*$/, "", npc_!!!);
+#                    gsub(/^<!\[CDATA\[/, "", npc_!!!);
+#                    gsub(/\]\]>$/, "", npc_!!!);
+#                    npcs[npc_index]["!!!"] = npc_!!!;
+#                }
+
+#                      case "!!!":
+#                        npcs[npc_index]["!!!"] = meta_value;
+#                        break;
