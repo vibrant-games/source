@@ -5,8 +5,8 @@ set -o pipefail
 
 if test $# -lt 1
 then
-    echo "Usage: $0 [ (option)... ] (filename.xml)..."
-    echo ""
+    echo "Usage: $0 [ (option)... ] (filename.xml)..." >&2
+    echo "" >&2
     exit 1
 fi
 
@@ -18,7 +18,7 @@ do
     XML_FILENAME="$ARG"
     if test ! -f "$XML_FILENAME"
     then
-        echo "ERROR No such XML file: $XML_FILENAME"
+        echo "ERROR No such XML file: $XML_FILENAME" >&2
         IS_ERRORS=true
         continue
     fi
@@ -981,14 +981,21 @@ do
                            }
                        }
                        break;
+                     default:
+                       if (meta_value != "") {
+                           npcs[npc_index]["num_uncategorized"] ++;
+                           uncategorized_index = npcs[npc_index]["num_uncategorized"];
+                           npcs[npc_index]["uncategorized"][uncategorized_index]["id"] = meta_key;
+                           npcs[npc_index]["uncategorized"][uncategorized_index]["value"] = meta_value;
+                       }
                    }
                }
               ' \
               || exit 3
 done
 
-echo ""
-echo "SUCCESS converting WordPress XML file(s) to YAML."
-echo ""
+echo "" >&2
+echo "SUCCESS converting WordPress XML file(s) to YAML." >&2
+echo "" >&2
 
 exit 0
