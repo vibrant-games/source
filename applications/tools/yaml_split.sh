@@ -102,6 +102,11 @@ do
 
                    yaml_output_filename = filename_pre $2 filename_post;
                    yaml_output_path = output_dir "/" yaml_output_filename;
+                   if ( split_line_nums[yaml_output_path] > 0 ) {
+                       print "ERROR duplicate " filename_field " values: lines " split_line_nums[yaml_output_path] " and " line_num " (" $0 "): " input_path;
+                   } else {
+                       split_line_nums[yaml_output_path] = line_num;
+                   }
                }
 
                END {
