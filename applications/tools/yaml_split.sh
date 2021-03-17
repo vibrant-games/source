@@ -20,16 +20,29 @@ FILENAME_FIELD="id"
 FILENAME_PRE=""
 FILENAME_POST=".yaml"
 
+INPUT_FILES=$*
+
 #
 # First check splittability of the monolithic YAML file:
 #
-for YAML_INPUT_FILE in $*
+echo "Pre-checks..."
+for YAML_INPUT_FILE in $INPUT_FILES
 do
+    if test ! -f "$YAML_INPUT_FILE"
+    then
+        echo "ERROR No such input file: $YAML_INPUT_FILE"
+        exit 2
+    fi
+
     OUTPUT_DIR=`dirname "$YAML_INPUT_FILE"`
     if test -z "$OUTPUT_DIR"
     then
         echo "ERROR Failed to determine parent path for YAML input file $YAML_INPUT_FILE"
-        exit 2
+        exit 3
+    elif test ! -d "$OUTPUT_DIR"
+    then
+        echo "ERROR Directory $OUTPUT_DIR does not exist for YAML input file $YAML_INPUT_FILE"
+        exit 4
     fi
 
     cat "$YAML_INPUT_FILE" \
@@ -117,8 +130,90 @@ do
                    }
 
                    if ( "is_error" == "true" ) {
-                       exit 3;
+                       exit 5;
                    }
                }
-              '
+              ' \
+                  || exit 5
 done
+
+
+#
+# Now split the monolithic YAML file:
+#
+echo "Splitting files..."
+for YAML_INPUT_FILE in $INPUT_FILES
+do
+    if test ! -f "$YAML_INPUT_FILE"
+    then
+        echo "ERROR No such input file: $YAML_INPUT_FILE"
+        exit 7
+    fi
+
+    OUTPUT_DIR=`dirname "$YAML_INPUT_FILE"`
+    if test -z "$OUTPUT_DIR"
+    then
+        echo "ERROR Failed to determine parent path for YAML input file $YAML_INPUT_FILE"
+        exit 8
+    elif test ! -d "$OUTPUT_DIR"
+    then
+        echo "ERROR Directory $OUTPUT_DIR does not exist for YAML input file $YAML_INPUT_FILE"
+        exit 9
+    fi
+
+    cat "$YAML_INPUT_FILE" \
+        | sed 's|[\r]||g' \
+        | awk \
+              -v "input_path=$YAML_INPUT_FILE" \
+              -v "output_dir=$OUTPUT_DIR" \
+              -v "filename_field=$FILENAME_FIELD" \
+              -v "filename_pre=$FILENAME_PRE" \
+              -v "filename_post=$FILENAME_POST" \
+              '
+               BEGIN {
+                   yaml_output_filename = "";
+                   yaml_output_path = "";
+                   yaml_output_path = "";
+                   yaml_content = "";
+               }
+
+               {
+                   line_type = "none";
+               }
+
+               $0 == "---" {
+                   if ( yaml_output_path != "" && yaml_content != "" ) {
+                       print "  " yaml_output_path;
+                       print yaml_content > yaml_output_path;
+                   }
+                   yaml_output_filename = "";
+                   yaml_output_path = "";
+                   yaml_content = "";
+                   line_type = "divider";
+               }
+
+               line_type == "none" {
+                   yaml_content = yaml_content "\n" $0;
+                   line_type = "yaml";
+               }
+
+               line_type == "yaml" && $1 == filename_field ":" {
+                   yaml_output_filename = filename_pre $2 filename_post;
+                   yaml_output_path = output_dir "/" yaml_output_filename;
+               }
+
+               END {
+                   if ( yaml_output_path != "" && yaml_content != "" ) {
+                       print "  " yaml_output_path;
+                       print yaml_content > yaml_output_path;
+                   }
+               }
+              ' \
+                  || exit 10
+done
+
+echo ""
+echo "SUCCESS splitting YAML file(s): $INPUT_FILES"
+echo ""
+
+exit 0
