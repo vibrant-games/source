@@ -33,6 +33,7 @@ do
     fi
 
     cat "$YAML_INPUT_FILE" \
+        | sed 's|[\r]||g' \
         | awk \
               -v "input_path=$YAML_INPUT_FILE" \
               -v "output_dir=$OUTPUT_DIR" \
