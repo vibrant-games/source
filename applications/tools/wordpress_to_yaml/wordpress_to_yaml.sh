@@ -7,6 +7,9 @@ if test $# -lt 1
 then
     echo "Usage: $0 [ (option)... ] (filename.xml)..." >&2
     echo "" >&2
+    echo "Reads the WordPress-formatted NPCs from the specified file," >&2
+    echo "converts them to YAML, and outputs to stdout." >&2
+    echo "" >&2
     echo "Options:" >&2
     echo "  --keep (publish/pending/draft/trash/blank/all)" >&2
     echo "    Which wp_trash_meta_status to keep." >&2
@@ -681,7 +684,9 @@ do
                    gsub(/<\/wp:post_name>.*$/, "", npc_id);
                    gsub(/^<!\[CDATA\[/, "", npc_id);
                    gsub(/\]\]>$/, "", npc_id);
-                   gsub(/-/, "_", npc_id);
+                   gsub(/[^a-zA-Z_0-9]/, "_", npc_id);
+                   gsub(/__/, "_", npc_id);
+                   npc_id = tolower(npc_id);
                    npcs[npc_index]["id"] = npc_id;
                }
 
@@ -753,6 +758,13 @@ do
                        break;
                      case "name":
                        npcs[npc_index]["name"] = meta_value;
+                       if ( npcs[npc_index]["id"] == "" ) {
+                           npc_id = npcs[npc_index]["name"];
+                           gsub(/[^a-zA-Z_0-9]/, "_", npc_id);
+                           gsub(/__/, "_", npc_id);
+                           npc_id = tolower(npc_id);
+                           npcs[npc_index]["id"] = npc_id;
+                       }
                        break;
                      case "age":
                        npcs[npc_index]["age"] = tolower(meta_value);
