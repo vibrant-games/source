@@ -119,6 +119,9 @@ cat "$CAT_FILENAME" \
                    parents[spaces] = ".";
                    parent = "";
                    parent_prefix = "";
+                   if (key == "~NO_KEY~") {
+                       key = "";
+                   }
                } else if (length(spaces) < length(previous_spaces)) {
                    parent = parents[spaces];
                    if (maybe_array_index != "") {
@@ -171,12 +174,14 @@ cat "$CAT_FILENAME" \
 
                path = parent_prefix key;
 
-               if (actual_value != "") {
-                   print path "=" value;
-               }
+               if ( path != "" ) {
+                   if (actual_value != "") {
+                       print path "=" value;
+                   }
 
-               previous_spaces = spaces;
-               previous_path = path;
+                   previous_spaces = spaces;
+                   previous_path = path;
+               }
            }
           ' \
               || exit 3
