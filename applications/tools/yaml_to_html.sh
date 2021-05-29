@@ -20,7 +20,14 @@ then
     exit 2
 fi
 
-TEMP_YAML_TO_HTML_FILE=$RUN_DIR/_temp_yaml_to_html.$$.sh
+MUSTACHE=`which mustache`
+if test $? -ne 0 \
+        -o "$MUSTACHE" = ""
+then
+    echo "ERROR you need to install mustache to run $0: sudo apt-get install ruby && sudo gem install mustache"
+    exit 3
+fi
+
 for YAML_FILE in $YAML_FILES
 do
     if test ! -f "$YAML_FILE"
@@ -32,58 +39,25 @@ do
     HTML_OUTPUT_DIR=`echo "$YAML_FILE" \
                          | sed 's|/\([^/]*\)$|/html|'`
     HTML_OUTPUT_FILE_BASE=`echo "$YAML_FILE" \
-                               | sed 's|^.*/\([^/]*\)\.yaml$|\1.html|'`
-    HTML_OUTPUT_FILE="$HTML_OUTPUT_DIR/$HTML_OUTPUT_FILE_BASE"
+                               | sed 's|^.*/\([^/]*\)\.yaml$|\1|'`
+    HTML_TEMP_FILE="$HTML_OUTPUT_DIR/$HTML_OUTPUT_FILE_BASE.temp"
+    HTML_OUTPUT_FILE="$HTML_OUTPUT_DIR/$HTML_OUTPUT_FILE_BASE.html"
 
-    echo "#!/bin/sh" \
-         > "$TEMP_YAML_TO_HTML_FILE" \
+    echo "$YAML_FILE -> $HTML_OUTPUT_FILE"
+    "$MUSTACHE" "$YAML_FILE" "$HTML_TEMPLATE_FILE" \
+                > "$HTML_TEMP_FILE" \
         || exit 4
-    echo "echo \"Creating $HTML_OUTPUT_FILE ...\"" \
-         >> "$TEMP_YAML_TO_HTML_FILE" \
+    cat "$HTML_TEMP_FILE" \
+        | sed 's|\$characters\$||g' \
+              > "$HTML_OUTPUT_FILE" \
         || exit 5
-    echo "mkdir -p \"$HTML_OUTPUT_DIR\" || exit 1" \
-         >> "$TEMP_YAML_TO_HTML_FILE" \
+    rm "$HTML_TEMP_FILE" \
         || exit 6
-    echo "echo \"\" | pandoc --standalone --template \"$HTML_TEMPLATE_FILE\" \\" \
-         >> "$TEMP_YAML_TO_HTML_FILE" \
-        || exit 7
-    $RUN_DIR/yaml_to_path.sh "$YAML_FILE" \
-        | sed 's|\\|\\\\"|g' \
-        | sed 's|"|\\"|g' \
-        | awk '
-               BEGIN {
-                   FS = "=";
-               }
-               {
-                   gsub(/[^a-zA-Z0-9]/, ".", $1);
-                   gsub(/---*/, "-", $1);
-                   gsub(/-$/, "", $1);
-                   print "    --metadata \"" $1 ":" $2 "\" \\";
-               }
-              ' \
-        >> "$TEMP_YAML_TO_HTML_FILE" \
-        || exit 8
-    echo "    --metadata \"title:!!!TEST\" \\" \
-         >> "$TEMP_YAML_TO_HTML_FILE" \
-        || exit 9
-    echo "    > $HTML_OUTPUT_FILE" \
-         >> "$TEMP_YAML_TO_HTML_FILE" \
-        || exit 10
-
-    chmod a+x "$TEMP_YAML_TO_HTML_FILE" \
-        || exit 11
-
-    "$TEMP_YAML_TO_HTML_FILE" \
-        || exit 12
-
     if test ! -f "$HTML_OUTPUT_FILE"
     then
-        echo "ERROR Failed to create $HTML_OUTPUT_FILE from $YAML_FILE: $TEMP_YAML_TO_HTML_FILE"
-        exit 13
+        echo "ERROR $0 did not create $HTML_OUTPUT_FILE for some reason"
+        exit 7
     fi
-
-    # !!! rm -f "$TEMP_YAML_TO_HTML_FILE" \
-    # !!!     || exit 14
 done
 
 echo "SUCCESS Converting YAML files to HTML."
