@@ -44,33 +44,46 @@ do
     echo "mkdir -p \"$HTML_OUTPUT_DIR\" || exit 1" \
          >> "$TEMP_YAML_TO_HTML_FILE" \
         || exit 6
-    echo "pandoc --standalone --template \"$HTML_TEMPLATE_FILE\" \\" \
+    echo "echo \"\" | pandoc --standalone --template \"$HTML_TEMPLATE_FILE\" \\" \
          >> "$TEMP_YAML_TO_HTML_FILE" \
         || exit 7
     $RUN_DIR/yaml_to_path.sh "$YAML_FILE" \
         | sed 's|\\|\\\\"|g' \
         | sed 's|"|\\"|g' \
-        | sed 's|^\(.*\)$|    --variable "\1" \\|' \
-              >> "$TEMP_YAML_TO_HTML_FILE" \
+        | awk '
+               BEGIN {
+                   FS = "=";
+               }
+               {
+                   gsub(/[^a-zA-Z0-9]/, ".", $1);
+                   gsub(/---*/, "-", $1);
+                   gsub(/-$/, "", $1);
+                   print "    --metadata \"" $1 ":" $2 "\" \\";
+               }
+              ' \
+        >> "$TEMP_YAML_TO_HTML_FILE" \
         || exit 8
-    echo "    > $HTML_OUTPUT_FILE" \
+    echo "    --metadata \"title:!!!TEST\" \\" \
          >> "$TEMP_YAML_TO_HTML_FILE" \
         || exit 9
-
-    chmod a+x "$TEMP_YAML_TO_HTML_FILE" \
+    echo "    > $HTML_OUTPUT_FILE" \
+         >> "$TEMP_YAML_TO_HTML_FILE" \
         || exit 10
 
-    "$TEMP_YAML_TO_HTML_FILE" \
+    chmod a+x "$TEMP_YAML_TO_HTML_FILE" \
         || exit 11
+
+    "$TEMP_YAML_TO_HTML_FILE" \
+        || exit 12
 
     if test ! -f "$HTML_OUTPUT_FILE"
     then
         echo "ERROR Failed to create $HTML_OUTPUT_FILE from $YAML_FILE: $TEMP_YAML_TO_HTML_FILE"
-        exit 12
+        exit 13
     fi
 
-    rm -f "$TEMP_YAML_TO_HTML_FILE" \
-        || exit 13
+    # !!! rm -f "$TEMP_YAML_TO_HTML_FILE" \
+    # !!!     || exit 14
 done
 
 echo "SUCCESS Converting YAML files to HTML."
