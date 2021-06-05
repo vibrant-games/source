@@ -13,6 +13,14 @@ fi
 
 YAML_FILES=$*
 
+DASEL=`which dasel`
+if test $? -ne 0 \
+	-o "$DASEL" = ""
+then
+    echo "ERROR dasel must be installed to use $0: brew install dasel (https://daseldocs.tomwright.me/installation)"
+    exit 1
+fi
+
 for YAML_FILE in $YAML_FILES
 do
     DASEL_ERROR=`dasel select --file "$YAML_FILE" --read yaml --plain --selector metadata.date \
