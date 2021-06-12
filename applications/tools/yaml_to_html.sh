@@ -38,10 +38,14 @@ do
 
     HTML_OUTPUT_DIR=`echo "$YAML_FILE" \
                          | sed 's|/\([^/]*\)$|/html|'`
+    CSS_FILE="$HTML_OUTPUT_DIR/stylesheet.css"
     HTML_OUTPUT_FILE_BASE=`echo "$YAML_FILE" \
                                | sed 's|^.*/\([^/]*\)\.yaml$|\1|'`
-    HTML_TEMP_FILE="$HTML_OUTPUT_DIR/$HTML_OUTPUT_FILE_BASE.temp"
+    HTML_TEMP_FILE="$HTML_OUTPUT_DIR/$HTML_OUTPUT_FILE_BASE.temp.html"
     HTML_OUTPUT_FILE="$HTML_OUTPUT_DIR/$HTML_OUTPUT_FILE_BASE.html"
+    PDF_OUTPUT_DIR=`echo "$YAML_FILE" \
+                        | sed 's|/\([^/]*\)$|/pdf|'`
+    PDF_OUTPUT_FILE="$PDF_OUTPUT_DIR/$HTML_OUTPUT_FILE_BASE.pdf"
 
     echo "$YAML_FILE -> $HTML_OUTPUT_FILE"
     "$MUSTACHE" "$YAML_FILE" "$HTML_TEMPLATE_FILE" \
@@ -57,6 +61,17 @@ do
     then
         echo "ERROR $0 did not create $HTML_OUTPUT_FILE for some reason"
         exit 7
+    fi
+
+    echo "$HTML_OUTPUT_FILE -> $PDF_OUTPUT_FILE"
+    mkdir -p "$PDF_OUTPUT_DIR" \
+        || exit 8
+    wkhtmltopdf --page-size Letter --enable-local-file-access "$HTML_OUTPUT_FILE" "$PDF_OUTPUT_FILE" \
+        || exit 9
+    if test ! -f "$PDF_OUTPUT_FILE"
+    then
+        echo "ERROR $0 did not create $PDF_OUTPUT_FILE for some reason"
+        exit 10
     fi
 done
 

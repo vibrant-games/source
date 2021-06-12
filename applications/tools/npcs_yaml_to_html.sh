@@ -17,6 +17,7 @@ fi
 CONTENT_DIR=$1
 
 RUN_DIR=`dirname $0`
+RUN_DATE_TIME=`date '+%Y%m%d_%H%M%S'`
 
 NPCS_DIR="$CONTENT_DIR/npcs"
 HTML_OUTPUT_DIR="$NPCS_DIR/html"
@@ -25,6 +26,7 @@ HTML_ALL_NPCS_TEMPLATE="$HTML_OUTPUT_DIR/npcs_all_template.html"
 HTML_ALL_NPCS_TEMPLATE_PRE="$HTML_OUTPUT_DIR/npcs_all_template_pre.html"
 HTML_ALL_NPCS_TEMPLATE_POST="$HTML_OUTPUT_DIR/npcs_all_template_post.html"
 HTML_ALL_NPCS_SUMMARY="$HTML_OUTPUT_DIR/npcs_all_summary.html"
+PDFS_ZIP="$CONTENT_DIR/vibrant_games_npcs.$RUN_DATE_TIME.zip"
 
 #
 # First validate all the YAML files.
@@ -55,6 +57,16 @@ cat "$HTML_ALL_NPCS_TEMPLATE_POST" >> "$HTML_ALL_NPCS_SUMMARY" \
 #
 "$RUN_DIR/yaml_to_html.sh" "$HTML_NPC_TEMPLATE" $NPCS_DIR/*.yaml \
     || exit 6
+
+#
+# Bundle up the PDFs directory, if it exists, into a zip file.
+#
+if test -d "$NPCS_DIR/pdf"
+then
+    echo "Creating $PDFS_ZIP..."
+    zip -r -b "$CONTENT_DIR" "$PDFS_ZIP" $NPCS_DIR/pdf/ $NPCS_DIR/html/*.html $NPCS_DIR/html/*.css \
+        || exit exit 7
+fi
 
 echo ""
 echo "SUCCESS converting NPCs from YAML to HTML: $HTML_OUTPUT_DIR"
