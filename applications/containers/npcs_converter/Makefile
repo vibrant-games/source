@@ -22,4 +22,4 @@ container:
 npcs:
 	sudo echo "sudo permission is required to run Docker."
 	sudo docker run --mount type=bind,readonly=false,source=`pwd`/../../../../content,destination=/vibrant_games/content_out npcs_converter:$(NPCS_CONVERTER_VERSION)
-	sudo chown -R $(RUN_USER):$(RUN_GROUP) ../../../../content/npcs/
+	sudo chown -R $(RUN_USER):$(RUN_GROUP) ../../../../content/npcs/ ../../../../content/vibrant_games_npcs.*.zip
