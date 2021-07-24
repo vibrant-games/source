@@ -13,7 +13,8 @@ fi
 
 YAML_FILES=$*
 
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" \
+    || exit 2
 
 DASEL=`which dasel`
 if test $? -ne 0 \
