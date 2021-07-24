@@ -10,4 +10,6 @@ RUN npm audit
 
 EXPOSE 8081
 
+RUN echo "You must mount/bind /var/npcs/html"
+
 ENTRYPOINT node /opt/node/bin/index.js

@@ -1,7 +1,6 @@
-// !!! const express = require('express');
-// !!! const { config } = require('../config/config.js');
 import express from 'express'
 import { config } from '../config/config.js'
+import { npcs } from '../config/npcs.js'
 
 const app = express();
 

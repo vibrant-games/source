@@ -1,6 +1,8 @@
 VERSION=0.0.1
 PORT=8081
 
+CONTENT_REPO_DIR=`pwd`/../../../content
+
 all: clean npc-container
 
 clean:
@@ -45,7 +47,7 @@ npc-container:
 
 start:
 	@echo "Starting npc server..."
-	sudo docker run npc:$(VERSION) &
+	sudo docker run --mount type=bind,readonly=false,source=$(CONTENT_REPO_DIR)/npcs/html,destination=/var/npcs/html npc:$(VERSION) &
 	@sleep 1
 	@CONTAINER_IDS=`sudo docker ps -a \
 	                  | grep 'npc:$(VERSION)' \
@@ -59,7 +61,8 @@ start:
 	                              | sed 's|^.*"\([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\)".*$$|\\1|'`; \
 	    if test ! -z "$$CONTAINER_IP_ADDRESS"; \
 	    then \
-	        echo "    You can browse to:    http://$$CONTAINER_IP_ADDRESS:$(PORT)"; \
+	        echo "    $$CONTAINER_ID:"; \
+	        echo "        You can browse to:    http://$$CONTAINER_IP_ADDRESS:$(PORT)"; \
 	    else \
 	        echo "    WARNING Docker container $$CONTAINER_ID does not have an IPAddress for some reason"; \
 	    fi; \
