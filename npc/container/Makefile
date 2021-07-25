@@ -9,18 +9,6 @@ clean:
 	rm -f *~
 	rm -rf ./_build/
 	@echo "Cleaning unversioned Docker images:"; \
-	UNVERSIONED_IMAGES=`sudo docker images \
-	                        | grep '<none>' \
-	                        | awk '{ print $$3; }'`; \
-	if test ! -z "$$UNVERSIONED_IMAGES"; \
-	then \
-	    echo "   $$UNVERSIONED_IMAGES" \
-	        | awk '{ printf " " $$0; }'; \
-	    sudo docker rmi $$UNVERSIONED_IMAGES; \
-	else \
-	    echo "    (No unversioned Docker images to clean)"; \
-	fi
-
 	@echo "Cleaning Exited Docker containers:"; \
 	EXITED_CONTAINERS=`sudo docker ps -a \
 	                        | grep 'Exited' \
@@ -32,6 +20,17 @@ clean:
 	    sudo docker rm $$EXITED_CONTAINERS; \
 	else \
 	    echo "    (No exited Docker containers to clean)"; \
+	fi
+	UNVERSIONED_IMAGES=`sudo docker images \
+	                        | grep '<none>' \
+	                        | awk '{ print $$3; }'`; \
+	if test ! -z "$$UNVERSIONED_IMAGES"; \
+	then \
+	    echo "   $$UNVERSIONED_IMAGES" \
+	        | awk '{ printf " " $$0; }'; \
+	    sudo docker rmi $$UNVERSIONED_IMAGES; \
+	else \
+	    echo "    (No unversioned Docker images to clean)"; \
 	fi
 
 npc-container:

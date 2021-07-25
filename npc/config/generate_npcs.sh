@@ -95,7 +95,9 @@ do
 	|| exit 1
     echo "    \"name\": \"$NPC_NAME_SCRUBBED\"," >> "$NPCS_JS" \
 	|| exit 1
-    echo "    \"url\": \"file:///var/npcs/html/$NPC_HTML_BASE_FILENAME\"," >> "$NPCS_JS" \
+    echo "    \"html_url\": \"file:///var/npcs/html/$NPC_HTML_BASE_FILENAME\"," >> "$NPCS_JS" \
+	|| exit 1
+    echo "    \"yaml_url\": \"file:///var/npcs/$NPC_YAML_BASE_FILENAME\"," >> "$NPCS_JS" \
 	|| exit 1
     echo "    };" >> "$NPCS_JS" \
 	|| exit 1

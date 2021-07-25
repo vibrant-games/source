@@ -3,6 +3,8 @@ FROM node:16.5.0-alpine3.13
 WORKDIR /opt/node/bin
 
 COPY source/* /opt/node/bin/
+# No idea why this extra COPY is necessary:
+COPY source/services /opt/node/bin/services/
 COPY config/* /opt/node/config/
 
 RUN npm ci
