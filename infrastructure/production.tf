@@ -48,3 +48,37 @@ resource "digitalocean_droplet" "web" {
     ]
   }
 }
+
+
+resource "digitalocean_domain" "www_vibrant_games_ca" {
+  name = "www.vibrantgames.ca"
+  # !!! ip_address = digitalocean_loadbalancer.web.iv4_address
+}
+
+resource "digitalocean_certificate" "certificate_production" {
+  name = "production-2021-10-10"
+  type = "lets_encrypt"
+  domains = [ digitalocean_domain.www_vibrant_games_ca.name ]
+}
+
+resource "digitalocean_loadbalancer" "web" {
+  name = "web-load-balancer"
+  region = "tor1"
+
+  forwarding_rule {
+    entry_port = 443
+    entry_protocol = "https"
+
+    target_port = 80
+    target_protocol = "http"
+
+    certificate_name = digitalocean_certificate.certificate_production.name
+  }
+
+  healthcheck {
+    port = 22
+    protocol = "tcp"
+  }
+
+  droplet_ids = [ digitalocean_droplet.web.id ]
+}
