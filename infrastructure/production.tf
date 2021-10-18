@@ -64,9 +64,9 @@ data "digitalocean_ssh_key" "do_terraform" {
 resource "digitalocean_record" "www_vibrantgames_ca" {
   # !!! domain = digitalocean_domain.vibrantgames_ca.name
   domain = "vibrantgames.ca"
-  type = "A"
+  type = "CNAME"
   name = "www"
-  value = "104.248.105.225"
+  value = "@"
 }
 
 resource "digitalocean_certificate" "certificate_production_www" {

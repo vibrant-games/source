@@ -63,8 +63,7 @@ metadata:
     service.beta.kubernetes.io/do-loadbalancer-hostname: "www.vibrantgames.ca"
     # From the output of the Terraform script production.tf:
     service.beta.kubernetes.io/do-loadbalancer-certificate-id: "fdd2011a-9584-4c89-92ab-c23cad89a0c9"
-    # !!! NO WORKY????: service.beta.kubernetes.io/do-loadbalancer-redirect-https-to-http: "true"
-    service.beta.kubernetes.io/do-loadbalancer-redirect-https-to-http: "false"
+    service.beta.kubernetes.io/do-loadbalancer-redirect-https-to-http: "true"
     # !!! TOO NOISY IN LOGS: service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
     service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "false"
     service.beta.kubernetes.io/do-loadbalancer-size-slug: "lb-small"
@@ -89,8 +88,6 @@ spec:
     app: www-v0
   # Prevent health check failures:
   externalTrafficPolicy: "Cluster"
-  externalIPs:
-    - 104.248.105.225
   ports:
   - name: http
     port: 80
