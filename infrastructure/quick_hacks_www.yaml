@@ -53,15 +53,51 @@ kind: Service
 metadata:
   name: www-v0-service
   namespace: www
+  annotations:
+    service.beta.kubernetes.io/do-loadbalancer-name: "production-loadbalancer"
+    service.beta.kubernetes.io/do-loadbalancer-protocol: "http"
+    service.beta.kubernetes.io/do-loadbalancer-http-ports: "80"
+    # Can't share ports across protocols: service.beta.kubernetes.io/do-loadbalancer-http2-ports: "80,443"
+    service.beta.kubernetes.io/do-loadbalancer-tls-ports: "443"
+    service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "false"
+    service.beta.kubernetes.io/do-loadbalancer-hostname: "www.vibrantgames.ca"
+    # From the output of the Terraform script production.tf:
+    service.beta.kubernetes.io/do-loadbalancer-certificate-id: "fdd2011a-9584-4c89-92ab-c23cad89a0c9"
+    # !!! NO WORKY????: service.beta.kubernetes.io/do-loadbalancer-redirect-https-to-http: "true"
+    service.beta.kubernetes.io/do-loadbalancer-redirect-https-to-http: "false"
+    # !!! TOO NOISY IN LOGS: service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+    service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "false"
+    service.beta.kubernetes.io/do-loadbalancer-size-slug: "lb-small"
+    # round_robin or least_connections:
+    service.beta.kubernetes.io/do-loadbalancer-algorithm: "round_robin"
+    service.beta.kubernetes.io/do-loadbalancer-enable-backend-keepalive: "false"
+    # service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-type: "cookies"
+    # service.beta.kubernetes.io/do-loadbalancer-sticky-sessions-cookie-name: "vibrant_games_session"
+    # service.beta.kubernetes.io/do-loadbalancer-sessions-cookie-ttl: "60"
+    # !!! NO WORKY???: service.beta.kubernetes.io/do-loadbalancer-healthcheck-port: "443"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-port: "80"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-protocol: "http"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-path: "/"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-check-interval-seconds: "3"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-response-timeout-seconds: "5"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-unhealthy-threshold: "3"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-healthy-threshold: "5"
+
 spec:
   type: LoadBalancer
   selector:
     app: www-v0
+  # Prevent health check failures:
+  externalTrafficPolicy: "Cluster"
   externalIPs:
     - 104.248.105.225
   ports:
   - name: http
     port: 80
+    targetPort: 8080
+    protocol: TCP
+  - name: https
+    port: 443
     targetPort: 8080
     protocol: TCP
 ---

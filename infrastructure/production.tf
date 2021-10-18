@@ -60,14 +60,21 @@ data "digitalocean_ssh_key" "do_terraform" {
 # !!!   # !!! ip_address = digitalocean_loadbalancer.web.iv4_address
 # !!! }
 
-# NEED IP ADDRESS:
-# !!! resource "digitalocean_record" "www_vibrantgames_ca" {
-# !!!   # !!! domain = digitalocean_domain.vibrantgames_ca.name
-# !!!   domain = "vibrantgames.ca"
-# !!!   type = "A"
-# !!!   name = "www"
-# !!!   value = !!!ip address!!!
-# !!! }
+# IP address is of the load balancer spun up in Kubernetes:
+resource "digitalocean_record" "www_vibrantgames_ca" {
+  # !!! domain = digitalocean_domain.vibrantgames_ca.name
+  domain = "vibrantgames.ca"
+  type = "A"
+  name = "www"
+  value = "104.248.105.225"
+}
+
+resource "digitalocean_certificate" "certificate_production_www" {
+  # !!! name = "production-2021-10-10"
+  name = "certificate-production-www"
+  type = "lets_encrypt"
+  domains = [ "www.vibrantgames.ca" ]
+}
 
 # !!! resource "digitalocean_certificate" "certificate_production" {
 # !!!   # !!! name = "production-2021-10-10"
@@ -158,4 +165,8 @@ resource "digitalocean_container_registry" "vibrantgames_production_registry" {
 
 output "cluster-id" {
   value = digitalocean_kubernetes_cluster.production.id
+}
+
+output "certificate-uuid" {
+  value = digitalocean_certificate.certificate_production_www.uuid
 }
