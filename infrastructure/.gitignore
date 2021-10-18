@@ -1,5 +1,6 @@
 .terraform
 .terraform.lock.hcl
+kubeconfig.json
 terraform.tfstate
 terraform.tfstate.backup
 tfplan

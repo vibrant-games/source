@@ -157,5 +157,5 @@ resource "digitalocean_container_registry" "vibrantgames_production_registry" {
 }
 
 output "cluster-id" {
-  value = "${digitalocean_kubernetes_cluster.production.id}"
+  value = digitalocean_kubernetes_cluster.production.id
 }
