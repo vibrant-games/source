@@ -4,6 +4,11 @@ terraform {
       source = "digitalocean/digitalocean"
       version = "2.14.0"
     }
+
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+      version = "2.5.1"
+    }
   }
 }
 
@@ -101,13 +106,44 @@ resource "digitalocean_kubernetes_cluster" "production" {
 #
 # Container registry for private images:
 #
-resource "digitalocean_container_registry" "vibrantgames_production_registry" {
-  name = "vibrantgames-production-registry"
+resource "digitalocean_container_registry" "production_registry" {
+  name = "production-registry"
   subscription_tier_slug = "starter"
-  # !!! Not sure what these actually do:
-  # !!! endpoint = "registry.digitalocean.com/myregistry"
-  # !!! server_url = "registry.digitalocean.com"
+
+  #
+  # Read-only:
+  #   endpoint = "registry.digitalocean.com/myregistry"
+  #   server_url = "registry.digitalocean.com"
+  #
 }
+
+#
+# Update the Kubernetes cluster to pull from the container registry:
+#
+resource "digitalocean_container_registry_docker_credentials" "production_registry" {
+  registry_name = digitalocean_container_registry.production_registry.name
+}
+
+provider "kubernetes" {
+  host = digitalocean_kubernetes_cluster.production.endpoint
+  token = digitalocean_kubernetes_cluster.production.kube_config[0].token
+  cluster_ca_certificate = base64decode(
+    digitalocean_kubernetes_cluster.production.kube_config[0].cluster_ca_certificate
+  )
+}
+
+resource "kubernetes_secret" "container-registry-secret" {
+  metadata {
+    name = "docker-cfg"
+  }
+
+  data = {
+    ".dockerconfigjson" = digitalocean_container_registry_docker_credentials.production_registry.docker_credentials
+  }
+
+  type = "kubernetes.io/dockerconfigjson"
+}
+
 
 output "cluster-id" {
   value = digitalocean_kubernetes_cluster.production.id
@@ -115,4 +151,8 @@ output "cluster-id" {
 
 output "certificate-uuid" {
   value = digitalocean_certificate.certificate_production_www.uuid
+}
+
+output "container-registry-server-url" {
+  value = digitalocean_container_registry.production_registry.server_url
 }

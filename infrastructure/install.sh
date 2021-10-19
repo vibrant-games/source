@@ -14,6 +14,14 @@ fi
 
 LOG_FILE="$RUN_DIR/${DATE_TIME}_infrastructure.log"
 
+#
+# To list Terraform state:
+#   sudo docker run --mount type=bind,readonly=false,source=`pwd`,destination=/vibrant_games/infrastructure --mount type=bind,readonly=true,source=$HOME/.ssh/vibrant_games,destination=/root/.ssh/vibrant_games --env TF_VAR_do_personal_access_token=`cat ../../scrts/do_terraform_key.txt | grep -v '^$'` --env TF_VAR_do_ssh_private_key_file=/root/.ssh/vibrant_games/do_id_ed25519 hashicorp/terraform:1.0.8@sha256:c4abe7a8d7b4ae05da852d56093da3704d6684a6d560d31e3a3ab18335cf5dcf -chdir=/vibrant_games/infrastructure state list
+#
+# To remove corrupt state:
+#   sudo docker run --mount type=bind,readonly=false,source=`pwd`,destination=/vibrant_games/infrastructure --mount type=bind,readonly=true,source=$HOME/.ssh/vibrant_games,destination=/root/.ssh/vibrant_games --env TF_VAR_do_personal_access_token=`cat ../../scrts/do_terraform_key.txt | grep -v '^$'` --env TF_VAR_do_ssh_private_key_file=/root/.ssh/vibrant_games/do_id_ed25519 hashicorp/terraform:1.0.8@sha256:c4abe7a8d7b4ae05da852d56093da3704d6684a6d560d31e3a3ab18335cf5dcf -chdir=/vibrant_games/infrastructure state rm blabla_resource_type.blabla_id
+#
+
 sudo docker run --mount type=bind,readonly=false,source=`pwd`,destination=/vibrant_games/terraform hashicorp/terraform:1.0.8@sha256:c4abe7a8d7b4ae05da852d56093da3704d6684a6d560d31e3a3ab18335cf5dcf -chdir=/vibrant_games/terraform init \
     || exit 1
 
@@ -35,6 +43,7 @@ if test $EXIT_CODE -ne 0
 then
     exit 4
 fi
+
 
 #
 # Now grab the kubeconfig.json for the cluster.
