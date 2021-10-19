@@ -26,6 +26,14 @@ sudo docker push registry.digitalocean.com/production-registry/www:0.0.1 \
 kubectl rollout restart deployment www-v1 --namespace www --kubeconfig ~/development/vibrant_games/source/infrastructure/kubeconfig.json \
     || exit 8
 
+cd ~/development/vibrant_games/source/infrastructure \
+    || exit 9
+
+kubectl apply --filename quick_hacks_www.yaml --kubeconfig kubeconfig.json \
+    || exit 10
+
+cd $OLD_DIR
+
 echo "SUCCESS publishing www."
 
 exit 0
