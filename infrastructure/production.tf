@@ -18,37 +18,6 @@ data "digitalocean_ssh_key" "do_terraform" {
   name = "jtienhaara@yahoo.com"
 }
 
-# !!! #
-# !!! # For now just a single webserver VM.
-# !!! # (Eventually Kubernetes cluster with Istio etc.)
-# !!! #
-# !!! resource "digitalocean_droplet" "web" {
-# !!!   image = "ubuntu-20-04-x64"
-# !!!   name = "web"
-# !!!   region = "tor1"
-# !!!   size = "s-1vcpu-1gb"
-# !!!   ssh_keys = [
-# !!!     data.digitalocean_ssh_key.do_terraform.id
-# !!!   ]
-# !!! 
-# !!!   connection {
-# !!!     host = self.ipv4_address
-# !!!     user = "root"
-# !!!     type = "ssh"
-# !!!     private_key = file(var.do_ssh_private_key_file)
-# !!!     timeout = "2m"
-# !!!   }
-# !!! 
-# !!!   provisioner "remote-exec" {
-# !!!     inline = [
-# !!!       "export PATH=$PATH:/usr/bin",
-# !!!       # Install nginx:
-# !!!       "sudo apt update",
-# !!!       "sudo apt install -y nginx"
-# !!!     ]
-# !!!   }
-# !!! }
-
 
 #
 # DNS currently done by hand :(
@@ -76,39 +45,10 @@ resource "digitalocean_certificate" "certificate_production_www" {
   domains = [ "www.vibrantgames.ca" ]
 }
 
-# !!! resource "digitalocean_certificate" "certificate_production" {
-# !!!   # !!! name = "production-2021-10-10"
-# !!!   name = "certificate-production"
-# !!!   type = "lets_encrypt"
-# !!!   domains = [ digitalocean_domain.www_vibrantgames_ca.name ]
-# !!! }
-
-# !!! resource "digitalocean_loadbalancer" "web" {
-# !!!   name = "web-load-balancer"
-# !!!   region = "tor1"
-# !!! 
-# !!!   forwarding_rule {
-# !!!     entry_port = 443
-# !!!     entry_protocol = "https"
-# !!! 
-# !!!     target_port = 80
-# !!!     target_protocol = "http"
-# !!! 
-# !!!     certificate_name = digitalocean_certificate.certificate_production.name
-# !!!   }
-# !!! 
-# !!!   healthcheck {
-# !!!     port = 22
-# !!!     protocol = "tcp"
-# !!!   }
-# !!! 
-# !!!   droplet_ids = [ digitalocean_droplet.web.id ]
-# !!! }
-
-
 
 #
-# Adapted from https://github.com/ponderosa-io/tf-digital-ocean-cluster/blob/master/digital-ocean-cluster.tf
+# The following is adapted from
+# https://github.com/ponderosa-io/tf-digital-ocean-cluster/blob/master/digital-ocean-cluster.tf
 #
 
 data "digitalocean_kubernetes_versions" "version" {
@@ -122,6 +62,10 @@ resource "digitalocean_kubernetes_cluster" "production" {
   name    = "production"
   region  = "tor1"
 
+  #
+  # Patch versions will be upgraded.
+  # (x.y.z -> x.y.z+1.)
+  #
   version = data.digitalocean_kubernetes_versions.version.latest_version
   auto_upgrade = true
 
@@ -145,6 +89,7 @@ resource "digitalocean_kubernetes_cluster" "production" {
     name       = "worker-pool"
     size       = "s-2vcpu-2gb"
     node_count = 2
+    # !!! Not used yet:
     # !!! auto_scale = true
     # !!! min_nodes = 1
     # !!! max_nodes = 5
@@ -159,6 +104,7 @@ resource "digitalocean_kubernetes_cluster" "production" {
 resource "digitalocean_container_registry" "vibrantgames_production_registry" {
   name = "vibrantgames-production-registry"
   subscription_tier_slug = "starter"
+  # !!! Not sure what these actually do:
   # !!! endpoint = "registry.digitalocean.com/myregistry"
   # !!! server_url = "registry.digitalocean.com"
 }
