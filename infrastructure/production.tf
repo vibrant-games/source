@@ -108,7 +108,7 @@ resource "digitalocean_kubernetes_cluster" "production" {
 #
 resource "digitalocean_container_registry" "production_registry" {
   name = "production-registry"
-  subscription_tier_slug = "starter"
+  subscription_tier_slug = "basic"
 
   #
   # Read-only:
