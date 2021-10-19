@@ -132,9 +132,11 @@ provider "kubernetes" {
   )
 }
 
+# !!! This will fail if run before kubectl apply has happened. :(
 resource "kubernetes_secret" "container-registry-secret" {
   metadata {
     name = "docker-cfg"
+    namespace = "www"
   }
 
   data = {
