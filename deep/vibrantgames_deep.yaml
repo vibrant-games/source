@@ -1,0 +1,63 @@
+config:
+  email:
+    admin: johann.tienhaara@vibrantgames.ca
+    support: support@vibrantgames.ca
+  web:
+    www:
+      domain: www.vibrantgames.ca
+      content: git@github.com:vibrant-games/docs-index.git
+
+infrastructure:
+  network: none
+  compute: kind
+  registry: digitalocean_container_registry
+  certificates: none
+  # !!! abandoned for now - certificates: cert-manager
+  mesh: none
+  authentication: none
+  # !!! Not workin' yet - PVs not picked up by rook PVCs: storage: rook
+  storage: none
+platform:
+  build: none
+  licenses: none
+  continuous:
+    distribution: none
+    deployment: none
+    integration: none
+  secrets: none
+  test:
+    unit: none
+    stress: none
+    fuzz: none
+    integration: none
+  deploy: none
+  version_control: none
+application:
+  content_management: none
+  web:
+    www: nginx
+    ui: none
+    server: none
+  mobile:
+    android: none
+    ios: none
+  message_bus: none
+  configuration: none
+  version: none
+  database: none
+  data_structures: none
+  api: none
+operations:
+  security:
+    network: none
+    container: none
+    libraries: none
+  cache: none
+  logging: none
+  backup_restore: none
+  tracing: none
+  test:
+    security: none
+    chaos: none
+  metrics: none
+  authorization: none
