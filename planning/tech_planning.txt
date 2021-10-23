@@ -1,0 +1,107 @@
+Tech planning
+Last updated:
+2021-05-08
+
+Infrastructure
+  The hardware-level stuff.
+
+Platform
+  Building and deploying the application.
+
+Application
+  The application itself.
+
+Operations
+  Making sure we can actually keep the application (a)live.
+
+"Pr" = Priority
+"SP" = Story Points (a relative measure of effort / time)
+
+"CI/CD" = Continuous Integration / Continuous Delivery/Deployment/Distribution
+"Cust"  = Custom bash scripts etc
+"Graf"  = Grafana
+"K8s"   = Kubernetes
+"Kust"  = Kustomize
+"Prom"  = Promtail (logging), Prometheus (metrics)
+"Tf"    = Terraform
+
+Pr  SP  Platform        System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+ 1   2  Version control git,github  ---         ---         Cust
+
+Pr  SP  Infrastructure  System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+ 2   5  Compute - home  kind,docker ---         ---         Cust,Tf
+ 3   3  Network - home  MetalLB     ---         ---         ?Helmfile?
+ 4   2  Mesh/zero trust Istio       ---         ---         ?Helmfile?
+ 5   3  Authentication  Ory         ---         ---         ?Helmfile?
+ 6   5  Storage 1       Rook|ceph   ---         ---         ?Helmfile?
+
+Pr  SP  Platform        System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+ 7   3  CI/CD           Flux        ---         ---         ?Helmfile?
+ 8   3  Secrets         SOPS        ---         ---         ?YAML?
+
+Pr  SP  Application     System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+ 9   3  Data structures YAML        ---         ---         ---
+10   3  API             Open API    ---         ---         ---
+11   5  Content mgmt    Rafter      ---         ---         ?Helmfile?
+12   2  Database server ?Mongo?PG?  ---         ---         ?Helmfile?
+13   5  Message bus     ?NATS?      ---         ---         ?Helmfile?
+14   3  Configuration   ?Kust|Cue|Cust? ---     ---         CI/CD
+15   8  Web - server    NodeJS      ?           ?           CI/CD
+16   8  Web - UI        ?React?     ?           ?Gulp?      CI/CD
+
+Pr  SP  Platform        System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+17   3  Build engines   ?           ---         ---         CI/CD
+18   3  Deploy engines  ?           ---         ---         CI/CD
+19   5  Unit test       ?           ---         ---         CI/CD
+20   5  Integration test ?Podman?   ---         ---         CI/CD
+
+*** Version 0.0.1 is ready to run on home machines ***
+79 story points
+
+Pr  SP  Operations      System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+21   3  Authorization   Ory         ---         ---         ?Helmfile?
+22   2  Logging         Prom+Loki   ---         ---         ?Helmfile?
+23   3  Metrics         Prom+Graf   ---         ---         ?Helmfile?
+24   5  Tracing         ?           ---         ---         ?Helmfile?
+25   3  Backup+restore  Velero      ---         ---         ?Helmfile?
+
+Pr  SP  Platform        System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+26   5  Stress test     Jmeter      ---         ---         CI/CD
+27   5  Fuzz test       ?           ---         ---         CI/CD
+
+Pr  SP  Infrastructure  System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+28   5  Network-cloud   DigitalOcean ---        ---         Tf
+
+Pr  SP  Operations      System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+29   3  Network security DigitalOcean ---       ---         Tf
+
+Pr  SP  Infrastructure  System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+30   3  Computer-cloud  DigitalOcean ---        ---         Tf
+31   3  Storage-cloud   DigitalOcean ---        ---         Tf
+
+*** Version 0.0.1 is ready to run on public cloud ***
++40 story points = 119 story points
+
+Pr  SP  Operations      System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+32   5  Container security Falco    ---         ---         ?Helmfile?
+33   8  Security testing ?          ---         ---         ?Helmfile?
+34   8  Chaos testing   ?           ---         ---         ?Helmfile?
+35   5  Cache server    ?           ---         ---         ?Helmfile?
+
+Pr  SP  Application     System      Compile     Package     Deploy
+--- --- --------------- ----------- ----------- ----------- ------------
+36   8  Android         Java        Android Studio ---      Google Play
+37   8  iOS             Swift       iOS Studio thingie      iStore
+
++ 42 story points = 161 story points
