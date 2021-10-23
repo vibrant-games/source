@@ -31,20 +31,20 @@ Pr  Hr  Platform        System      Compile     Package     Deploy
 
 Pr  Hr  Infrastructure  System      Compile     Package     Deploy
 --- --- --------------- ----------- ----------- ----------- ------------
- 2   4  Compute - home  kind,docker ---         ---         Cust,Tf
+ 2   X  Compute - home  kind,docker ---         ---         Cust,Tf
  3   8  Network - home  MetalLB     ---         ---         ?Helmfile?
- 4  16  Mesh/zero trust Istio       ---         ---         ?Helmfile?
+ 4   8  Mesh/zero trust Istio       ---         ---         ?Helmfile?
  5   8  Authentication  Ory         ---         ---         ?Helmfile?
- 6  16  Storage 1       Rook|ceph   ---         ---         ?Helmfile?
+ 6   8  Storage 1       Rook|ceph   ---         ---         ?Helmfile?
 
 Pr  Hr  Platform        System      Compile     Package     Deploy
 --- --- --------------- ----------- ----------- ----------- ------------
  7   8  CI/CD           Flux        ---         ---         ?Helmfile?
- 8  16  Secrets         Vault       ---         ---         ?YAML?
+ 8  12  Secrets         Vault       ---         ---         ?YAML?
 
 Pr  Hr  Application     System      Compile     Package     Deploy
 --- --- --------------- ----------- ----------- ----------- ------------
- 9   8  Data structures YAML        ---         ---         ---
+ 9   4  Data structures YAML        ---         ---         ---
 10   8  API             Open API    ---         ---         ---
 11   ?  Content mgmt    Rafter???   ---         ---         ?Helmfile?
 12   ?  Database server ?Mongo?PG?  ---         ---         ?Helmfile?
@@ -61,7 +61,7 @@ Pr  Hr  Platform        System      Compile     Package     Deploy
 20  24  Integration test ?Postman?Robot? ---    ---         CI/CD
 
 *** Version 0.0.1 is ready to run on home machines ***
-220 hours @ 10 hours / week = 22 weeks
+192 hours @ 10 hours / week = 20 weeks
 
 Pr  Hr  Operations      System      Compile     Package     Deploy
 --- --- --------------- ----------- ----------- ----------- ------------
@@ -78,19 +78,19 @@ Pr  Hr  Platform        System      Compile     Package     Deploy
 
 Pr  Hr  Infrastructure  System      Compile     Package     Deploy
 --- --- --------------- ----------- ----------- ----------- ------------
-28   8  Network-cloud   DigitalOcean ---        ---         Tf
+28   X  Network-cloud   DigitalOcean ---        ---         Tf
 
 Pr  Hr  Operations      System      Compile     Package     Deploy
 --- --- --------------- ----------- ----------- ----------- ------------
-29   8  Network security DigitalOcean ---       ---         Tf
+29   X  Network security DigitalOcean ---       ---         Tf
 
 Pr  Hr  Infrastructure  System      Compile     Package     Deploy
 --- --- --------------- ----------- ----------- ----------- ------------
-30   8  Compute-cloud   DigitalOcean ---        ---         Tf
+30   X  Compute-cloud   DigitalOcean ---        ---         Tf
 31   8  Storage-cloud   DigitalOcean ---        ---         Tf
 
 *** Version 0.0.1 is ready to run on public cloud ***
-+136 hours = 356 hours total ~ 36 weeks total
++112 hours = 304 hours total ~ 31 weeks total
 
 Pr  Hr  Operations      System      Compile     Package     Deploy
 --- --- --------------- ----------- ----------- ----------- ------------
@@ -104,4 +104,4 @@ Pr  Hr  Application     System      Compile     Package     Deploy
 36  32  Android         Java        Android Studio ---      Google Play
 37  32  iOS             Swift       iOS Studio thingie      iStore
 
-+ 128 hours = 484 hours total ~ 49 weeks total
++ 128 hours = 432 hours total ~ 44 weeks total
