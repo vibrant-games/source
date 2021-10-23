@@ -32,6 +32,9 @@ cd ~/development/vibrant_games/source/infrastructure \
 kubectl apply --filename quick_hacks_www.yaml --kubeconfig kubeconfig.json \
     || exit 10
 
+# Doesn't seem to actually work!  :(  sits at 0% progress forever:  doctl registry garbage-collection start --force
+echo "Do doctl registry garbage-collection start --force or in the UI"
+
 cd $OLD_DIR
 
 echo "SUCCESS publishing www."
