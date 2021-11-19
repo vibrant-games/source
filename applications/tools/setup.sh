@@ -3,6 +3,9 @@
 echo "Setting up tools..."
 sudo echo "You must have sudo permission to run this script."
 
+sudo apt-get update \
+    || exit 1
+
 sudo apt-get install -y curl git \
     || exit 1
 
