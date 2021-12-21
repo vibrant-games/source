@@ -23,9 +23,6 @@ NPCS_DIR="$CONTENT_DIR/npcs"
 HTML_OUTPUT_DIR="$NPCS_DIR/html"
 HTML_NPC_TEMPLATE="$HTML_OUTPUT_DIR/npc_template.html"
 HTML_ALL_NPCS_TEMPLATE="$HTML_OUTPUT_DIR/npcs_all_template.html"
-HTML_ALL_NPCS_TEMPLATE_PRE="$HTML_OUTPUT_DIR/npcs_all_template_pre.html"
-HTML_ALL_NPCS_TEMPLATE_POST="$HTML_OUTPUT_DIR/npcs_all_template_post.html"
-HTML_ALL_NPCS_SUMMARY="$HTML_OUTPUT_DIR/npcs_all_summary.html"
 PDFS_ZIP="$CONTENT_DIR/vibrant_games_npcs.$RUN_DATE_TIME.zip"
 
 #
